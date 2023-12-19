@@ -1,11 +1,25 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 
 	"github.com/spf13/cobra"
 )
+
+type FileDetails struct {
+	Name string `json:"name"`
+	Size string `json:"size"`
+}
+
+type Payload struct {
+	Files []FileDetails `json:"files"`
+	Total int           `json:"total"`
+}
 
 // The main command that will be the root of all your subcommands
 var rootCmd = &cobra.Command{
@@ -29,6 +43,34 @@ var writeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		WriteFiles()
 	},
+}
+
+func getListOfFiles() ([]FileDetails, int) {
+	entries, err := os.ReadDir(".")
+	if err != nil {
+		fmt.Printf("Error reading directory: %v\n", err)
+		return nil, 0
+	}
+
+	var totalSize int64
+	var files []FileDetails
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			info, err := entry.Info()
+			if err != nil {
+				fmt.Printf("Error getting info for file: %s, error: %v\n", entry.Name(), err)
+				continue
+			}
+
+			size := info.Size()
+			totalSize += size
+			humanSize := fileSizeToHumanReadable(size)
+			files = append(files, FileDetails{Name: entry.Name(), Size: humanSize})
+		}
+	}
+
+	return files, int(totalSize)
 }
 
 func ListFiles() {
@@ -73,7 +115,35 @@ func fileSizeToHumanReadable(size int64) string {
 }
 
 func WriteFiles() {
-	fmt.Println("WriteFiles function called")
+	files, totalSize := getListOfFiles()
+	payload := Payload{
+		Files: files,
+		Total: totalSize,
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Printf("Error marshaling payload: %v\n", err)
+		return
+	}
+
+	// Replace with the actual API endpoint you want to call
+	apiEndpoint := "http://localhost/api/write" //TODO: build this later
+
+	resp, err := http.Post(apiEndpoint, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		fmt.Printf("Error calling API: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("Error reading response body: %v\n", err)
+		return
+	}
+
+	fmt.Printf("API Response: %s\n", string(body))
 }
 
 func init() {
