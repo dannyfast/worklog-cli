@@ -40,9 +40,36 @@ func ListFiles() {
 
 	for _, entry := range entries {
 		if !entry.IsDir() {
-			fmt.Println(entry.Name())
+			info, err := entry.Info()
+			if err != nil {
+				fmt.Printf("Error getting info for file: %s, error: %v\n", entry.Name(), err)
+				continue
+			}
+
+			fullPath, err := os.Getwd()
+			if err != nil {
+				fmt.Printf("Error getting full path: %v\n", err)
+				return
+			}
+
+			size := info.Size()
+			humanSize := fileSizeToHumanReadable(size)
+			fmt.Printf("%v/%v - %v\n", fullPath, entry.Name(), humanSize)
 		}
 	}
+}
+
+func fileSizeToHumanReadable(size int64) string {
+	const unit = 1024
+	if size < unit {
+		return fmt.Sprintf("%d B", size)
+	}
+	div, exp := int64(unit), 0
+	for n := size / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB", float64(size)/float64(div), "KMGTPE"[exp])
 }
 
 func WriteFiles() {
