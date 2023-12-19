@@ -6,7 +6,7 @@ The Worklog application is a command-line tool developed in Go, which provides t
 
 ## How this entire repo was generated
 
-![How the entire repo was created](worklog.build.webm)
+![How the entire repo was created](https://github.com/dannyfast/worklog-cli/raw/main/worklog.gif)
 
 ## Requirements
 
