@@ -4,6 +4,10 @@
 
 The Worklog application is a command-line tool developed in Go, which provides the functionality to list files in the current directory and write the details of files to a remote API. The tool leverages the Cobra library for creating a structured command-line interface.
 
+## How this entire repo was generated
+
+![How the entire repo was created](worklog.build.webm)
+
 ## Requirements
 
 - Go programming language (1.x+)
