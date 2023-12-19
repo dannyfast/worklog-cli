@@ -32,7 +32,17 @@ var writeCmd = &cobra.Command{
 }
 
 func ListFiles() {
-	fmt.Println("ListFiles function called")
+	entries, err := os.ReadDir(".")
+	if err != nil {
+		fmt.Printf("Error reading directory: %v\n", err)
+		return
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			fmt.Println(entry.Name())
+		}
+	}
 }
 
 func WriteFiles() {
